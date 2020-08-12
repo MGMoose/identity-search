@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-5">
+        <form method="POST" id="process-form" enctype="multipart/form-data" allow_folders=True>
+            {% csrf_token %}
+            {{ form|crispy }}
+            {% if error %}
+                <p style="color:red;">Face was not detected</p>
+            {% endif %}
+            <div class="input-group-append">
+                <button name="process_btn" type="submit" onclick="onStart();" class="btn btn-primary btn-lg btn-block">Process</button>
+            </div>
+            <div style="margin-top: 10px;" class="input-group-append">
+                <button name="add_db_btn" type="submit" onclick="onStart();" class="btn btn-success btn-lg btn-block">Add photos to Database</button>
+            </div>
+        </form>
+
+        {% if uploaded_file_url %}
+            <br>
+            <img id="desired" src="{{ uploaded_file_url }}" class="rounded mx-auto d-block" alt="Uploaded Photo" style="width: 200px;">
+        {% endif %}
+    </div>
+    <div class="col-1"></div>
+    <div class="col-4" style="margin-top: 100px;">
+        <div class="container_gallery">
+            <div class="img-text" id="imgtext_name"></div>
+            <div class="img-text" id="imgtext_confidence"></div>
+            <img id="expandedImg" style="width:100%">
+        </div>
+    </div>
+    <div class="col-2" style="margin-top: 100px;">
+        {% if list_images %}
+
+            <ul style="list-style-type: none;">
+
+                {% for photo in list_images %}
+
+                    <li>
+                        <div class="column_gallery">
+                            <img src="{{ photo.photo_path }}" alt="File Name: {{ photo.photo_name }};Confidence: {{ photo.accuracy }}%" style="width:100%" onclick="onExpand(this);">
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+    <div class="image-container">
+        <p class="image-holder">
+        <img src="media/gif/loader.gif" alt="gif"/>
+        </p>
+    </div>
+    <script>
+
+        function expand(imgs) {
+
+            var expandImg = document.getElementById("expandedImg");
+            var imgtext_name = document.getElementById("imgtext_name");
+            var imgtext_confidence = document.getElementById("imgtext_confidence");
+            expandImg.src = imgs.src;
+            imgtext_name.innerHTML = imgs.alt.split(';')[0];
+            imgtext_confidence.innerHTML = imgs.alt.split(';')[1];
+            expandImg.parentElement.style.display = "block";
+        }
+        function onStart() {
+
+            document.getElementById("process-form").onsubmit = function onSubmit(form) {
+                $('div.image-container').fadeIn('slow');
+            }
+        }
+        function onLoad() {
+            $('div.image-container').fadeOut('slow');
+            imgs = document.querySelectorAll("ul > li > div > img")[0]
+            if (imgs) {
+                expand(imgs);
+            }
+        }
+        function onExpand(imgs) {
+
+            expand(imgs);
+        }
+    </script>
+</div>
+
+{% if zip_file %}
+    <div id="#content">
+        <a class="download btn btn-danger" href="{{ zip_file }}" download>Download Files</a> 
+    </div>
+{% endif %}
+
+{% endblock %} 
